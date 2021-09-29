@@ -1,0 +1,142 @@
+---
+tags: [Linux]
+title: GREP
+created: '2021-07-19T21:32:17.347Z'
+modified: '2021-07-20T01:12:49.321Z'
+---
+
+# <center> GREP 
+<br>
+Grep est une commande linux permettant de trouver des correspondances dans des textes. On peut par exemple grâce à grep rechercher un mot dans un fichier et le système imprimera *chaque ligne* du fichier contenant le mot en question. (Prendre un fichier exemple de poème ?).
+<br>
+
+# Utilisation de base
+
+La commande suivante permet de trouver toute les lignes contenant le mot **GNU** dans le fichier *fichier1*.
+
+```bash 
+$ grep "GNU" fichier1
+```
+:point_right: Le modele de base est : `grep` + `mot à chercher` + `fichier` <br>
+# Options courantes 
+Par défaut, grep cherchera le mot *exact* spécifié. On peut modifier ce comportement en ajoutant des balises.<br> 
+
+### :point_right: Ignorer la casse
+On peut ignorer la casse (par défaut grep respecte la casse) en spécifiant l'option `-i` ou `--ignore-case`.
+```bash
+$ grep -i "licence" fichier1
+```
+> Cette commande renverra toute les occurences de licence comme `LICENCE`, `licence`, `Licence`.<br>
+
+### :point_right: Recherche inversée 
+Si on souhaite trouver toute les lignes **qui ne contiennent pas** le modèle spécifié on peut utiliser l'option `-v` ou `--invert-match`.
+```bash
+$ grep -v "le" fichier1
+```
+> Renverra toute les lignes ne contenant **PAS** le mot `le` dans le fichier1. <br>
+
+### :point_right: Numéro de ligne 
+On peut connaître le numéro de la ligne sur laquelle les correspondances ont été trouvées, grâce à l'option `-n` ou `--line-number`. On reprend l'argument précédent en **combinant** les options.
+```bash
+$ grep -vn "le" fichier1
+```
+> Renverra le numéro de ligne **ET** le contenu des lignes ne contenant pas le mot `le` (idéal quand on travaille sur un code source). <br> 
+ 
+ # Expressions régulières
+ On peut complexifier les moyens de recherches avec des "expressions régulières" qui permettent de spécifier des modèles de chaine de caractères à rechercher (majuscule, début de ligne etc...) <br>
+
+ ## Les ancres
+ les ancres sont des caractères spéciaux spécifiant à quel endroit de la ligne doit se trouver la correspondance.
+
+ ### :point_right: Début de ligne : ^
+ ```bash
+$ grep  "^GNU" fichier1
+```
+> Renvoie toute les lignes commencant par GNU<br>
+
+### :point_right: Fin de ligne : $
+```bash
+$ grep "aime$" fichier1
+```
+> Renvoie toute les lignes se terminant par aime 
+
+## Correspondances avec certains caractères
+
+### :point_right: N'importe quel caractère : .
+On peut au sein d'une expression régulière utiliser un point (.), pour signifier que tout caractère individuel peut exister à l'endroit spécifié.
+```bash
+$ grep "..cept" fichier1
+```
+> Renvoie toute les lignes contenant des mots contenant deux caractères puis la chaine `cept` (par exemple `accept`, `except`, `acceptations`, `z2cept`...)
+### :point_right: Expression entre crochets (choix) 
+En placant un groupe de caractères entre crochets, on spécifie que le caractère qui se trouve à cette position peut être l'un des caractères du groupe entre crochets.
+```bash
+$ grep "t[wo]o" fichier1
+```
+> Renverra toute les lignes contenant `two` ou `too` <br>
+
+<br> En mettant ^+ des caractères entre crochets, on recherchera toute les correspondances **sauf** avec les caractères entre crochets.
+```bash
+$ grep "[^c]ode" fichier1
+```
+> Renverra tout les mots de la forme `.ode` **SAUF** `code` (par exemple `mode`, `node` ...).
+
+<br> On peut aussi spécifier un groupe de caractères avec un tiret :
+```bash
+$ grep "^[A-Za-z]" fichier1
+```
+> Renverra toute les lignes commencant par une lettre majuscule [A-Z] ou minuscule [a-z]
+
+### :point_right: Répéter le modèle Zéro ou Plus de fois (*)
+On peut utiliser une astérisque * qui signifie "répétez le caractère précédent ou l'expression précédente zero ou plus de fois"
+```bash
+$ grep "([A-Za-z ]*)" fichier1
+```
+> Permet d'afficher toute les lignes contenant une parenthèse d'ouverture, une de fermeture et entre les deux des lettres ou des espaces.
+
+### :point_right: Éviter les méta_caractères
+On peut utiliser un backslash (\) pour éviter à un potentiel méta caractère d'être interprété comme tel (par exemple les ., * etc). Par exemple :
+```bash
+$ grep "^[A-Z]\.$" fichier1
+```
+> Ici on veut trouver toute les lignes commencant par une lettre majuscule et se terminant par un point : on échappe le '.' pour qu'il soit interprété littéralement et pas comme n'importe quel caractère. 
+
+# <br> Expressions régulières étendues
+On peut étendre les possibilités des expressions régulières de `grep` en utilisant l'option `-E` ou la commande `egrep`. Cela permet les E.R.E. 
+
+
+### :point_right: Alternance (ca ou ca)
+En mettant une expression **entre parenthèses** avec `-E`ou `egrep`, on peut utiliser les expressions de regroupements. Ci dessous un exemple permettant un ou logique
+```bash
+$ grep -E "(GPL|License)" fichier1
+```
+> Permet de trouver toute les lignes contenant *soit* le mot GPL soit le mot Licence
+### :point_right: Quantificateurs
+On peut avec un **?** rendre le groupement précédent optionnel.
+```bash
+$ grep -E "(copy)?right" fichier1
+```
+> Renvoie toute les lignes contenant soit `copyright` soit `right`.
+
+<br> Avec un `+`, l'expression doit apparaître au moins une fois (elle peut apparaître plusieurs fois). C'est l'équivalent du `*`, sauf que pour le `*`, l'expression peut ne pas apparaître 
+```bash
+$ grep -E "(free[^[:space:]]+" fichier1
+```
+> Permet de trouver tout les mots commencant par free suivie de plusieurs caractères qui ne soient pas des caractères d'espacement `[^[:space:]]` ==> caractère qui ne soient **PAS** des caractères d'espacement.
+### :point_right: Répétition de correspondance
+```bash
+$ grep -E "[AEIOUaeiou]{3}" fichier1
+```  
+> On cherche toute les lignes contenant un mot avec trois voyelles consécutives
+
+<br>
+
+```bash
+$ grep -E "[[:alpha:]]{16, 20}" fichier1
+```
+> Affiche toute les lignes comprenant des mots qui font entre 16 et 20 caractères.
+
+# <br>Conclusion
+### Les expressions régulières sont utilisées avec de nombreux programmes (et un peu tout Linux), les connaître peut servir dans tout un tas d'expressions. Il y a plein de commande en plus, à rajouter pour les expressions régulières.
+:point_right: Faire fiche sur expressions régulières ?
+:point_right: Rajouter expressions régulières à l'occasion ?
